@@ -6,14 +6,17 @@ const cors = require('cors');
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
+// ⚠️ Fix SSL handshake error di Railway (safe untuk R2)
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 const s3 = new S3Client({
-  region: process.env.R2_REGION,
-  endpoint: process.env.R2_ENDPOINT,
+  region: process.env.R2_REGION || 'auto',
+  endpoint: process.env.R2_ENDPOINT, // tanpa slash di belakang!
   credentials: {
     accessKeyId: process.env.R2_ACCESS_KEY_ID,
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
   },
-  forcePathStyle: true, // Penting untuk R2 (bukan S3)
+  forcePathStyle: true, // WAJIB untuk R2
 });
 
 app.use(cors());
@@ -33,13 +36,13 @@ app.post('/upload', upload.single('file'), async (req, res) => {
       ContentType: file.mimetype,
     };
 
-    // Upload ke R2 pakai v3
     await s3.send(new PutObjectCommand(params));
     const fileUrl = `${process.env.CDN_DOMAIN}/${filename}`;
     res.json({ fileUrl });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Upload failed' });
+    console.error('UPLOAD ERROR:', err);
+    // Kirim error asli ke response juga (biar gampang debug)
+    res.status(500).json({ error: 'Upload failed', detail: err.message || err.toString() });
   }
 });
 
