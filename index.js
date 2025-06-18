@@ -6,17 +6,28 @@ const cors = require('cors');
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
+// ⚠️ DEBUG ENV dan versi Node, WAJIB buat troubleshooting Railway + R2
+console.log("==== ENV CHECK (Startup) ====");
+console.log("Node version:", process.version);
+console.log("R2_ENDPOINT:", process.env.R2_ENDPOINT);
+console.log("R2_BUCKET:", process.env.R2_BUCKET);
+console.log("R2_REGION:", process.env.R2_REGION);
+console.log("R2_ACCESS_KEY_ID:", process.env.R2_ACCESS_KEY_ID);
+console.log("R2_SECRET_ACCESS_KEY length:", process.env.R2_SECRET_ACCESS_KEY ? process.env.R2_SECRET_ACCESS_KEY.length : 'undefined');
+console.log("CDN_DOMAIN:", process.env.CDN_DOMAIN);
+console.log("=============================");
+
 // ⚠️ Fix SSL handshake error di Railway (safe untuk R2)
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const s3 = new S3Client({
   region: process.env.R2_REGION || 'auto',
-  endpoint: process.env.R2_ENDPOINT, // tanpa slash di belakang!
+  endpoint: process.env.R2_ENDPOINT,
   credentials: {
     accessKeyId: process.env.R2_ACCESS_KEY_ID,
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
   },
-  forcePathStyle: true, // WAJIB untuk R2
+  forcePathStyle: true,
 });
 
 app.use(cors());
@@ -41,7 +52,6 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     res.json({ fileUrl });
   } catch (err) {
     console.error('UPLOAD ERROR:', err);
-    // Kirim error asli ke response juga (biar gampang debug)
     res.status(500).json({ error: 'Upload failed', detail: err.message || err.toString() });
   }
 });
