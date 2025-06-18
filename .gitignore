@@ -1,0 +1,6 @@
+.env
+*.env
+arenago-a80c0-firebase-adminsdk-*.json
+node_modules/
+npm-debug.log*
+.DS_Store
