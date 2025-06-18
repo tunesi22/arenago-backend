@@ -17,8 +17,6 @@ console.log("R2_SECRET_ACCESS_KEY length:", process.env.R2_SECRET_ACCESS_KEY ? p
 console.log("CDN_DOMAIN:", process.env.CDN_DOMAIN);
 console.log("=============================");
 
-// ⚠️ Fix SSL handshake error di Railway (safe untuk R2)
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const s3 = new S3Client({
   region: process.env.R2_REGION || 'auto',
